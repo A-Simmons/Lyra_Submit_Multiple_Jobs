@@ -1,0 +1,14 @@
+#!/bin/bash -l
+#
+
+#### load matlab module
+module load R/3.2.4_gcc
+
+#### cd to working directory
+cd $PBS_O_WORKDIR
+
+#### run R
+R CMD BATCH --no-save --no-restore "--args "$PARAM1" "$PARAM2" "$PARAM3"" simpleFunction.R $PBS_JOBNAME.out
+echo "$PARAM1"
+echo "$PARAM2"
+echo "$PARAM3"
