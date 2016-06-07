@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #
 
-#### load R module
+#### load matlab module
 module load R/3.2.4_gcc
 
 #### cd to working directory

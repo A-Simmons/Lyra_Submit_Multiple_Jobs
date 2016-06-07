@@ -21,12 +21,12 @@ while read -a line; do
 				ParamString=$ParamString"$IFS"
 			fi
 			# Add new parameter
-			ParamString=$ParamString"Param$(($i-2))=${line[i]}"
+			ParamString=$ParamString"PARAM$(($i-2))=${line[i]}"
 			echo "PARAM $(($i-2)): ${line[i]}"
 		fi
 	done
 	IFS=$OLDIFS
-	qsub $ParamString -N ${line[0]} -l walltime=${line[1]} -l mem=${line[2]} subJob2.pbs
+	qsub "$ParamString" -N ${line[0]} -l walltime=${line[1]} -l mem=${line[2]} subJob2.pbs
 	IFS=','
 done < INPUT # Ends the loop
 

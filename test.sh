@@ -11,7 +11,8 @@ IFS=,
 [ ! -f $INPUT ] && { echo "$INPUT could not be found"; exit 99; }
 
 # Read in the columns one line at a time. Add or remove f# as needed for number of columns in CSV
-while read f1 f2 f3 f4 f5 f6
+
+while read f1 f2 f3 f4 f5 f6 
 do
 	# echo command simply prints to consol, can be used a visual confirmation nothing wacky is going on
 	echo "Name : $f1"

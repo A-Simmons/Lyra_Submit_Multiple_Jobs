@@ -8,15 +8,16 @@ module load R/3.2.4_gcc
 cd $PBS_O_WORKDIR
 
 #### run R
-
-args=("$@")
-ELEMENTS=${#args[@]}
+NARGS=$(grep -o "PARAM" <<< "$(declare -xp)" | wc -l)
 argString=""
-for (( i=0;i<$ELEMENTS;i++)); do
-    argString=$argString" "${args[${i}]}
+for (( i=1;i<=$NARGS;i++)); do
+	varName="PARAM$i"
+	argString=$argString" "${!varName}
 done
 argString="--args$argString"
 
-R CMD BATCH --no-save --no-restore $argString simpleFunction.R $PBS_JOBNAME.out
-echo ${args[@]}
-echo $@
+
+R CMD BATCH --no-save --no-restore "$argString" simpleFunction.R $PBS_JOBNAME.out
+echo "$PARAM1"
+echo "$PARAM2"
+echo "$PARAM3"
