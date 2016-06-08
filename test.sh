@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cat $1 > INPUT
 [ ! -f $INPUT ] && { echo "$INPUT could not be found"; exit 99; }
 

@@ -1,10 +1,7 @@
 WARNING: ignoring environment value of R_HOME
-7
-8
-"Peace"
 
 -----
-PBS Job 660076.pbs
+PBS Job 665600.pbs
 CPU time  : 00:00:00
-Wall time : 00:00:01
-Mem usage : 260kb
+Wall time : 00:00:02
+Mem usage : 33112kb
