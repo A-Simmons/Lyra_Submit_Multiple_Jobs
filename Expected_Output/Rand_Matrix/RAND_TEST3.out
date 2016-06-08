@@ -1,0 +1,53 @@
+
+R version 3.2.4 (2016-03-10) -- "Very Secure Dishes"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> args<-commandArgs(TRUE)
+> 
+> # Set some defaults
+> seed <- 1
+> n <- 10
+> m <- 10
+> 
+> # Replace defaults with arguments if they exist
+> nargs = length(args)
+> if (nargs >= 1) {
++   seed <- eval( parse(text=args[1]))
++   if (nargs >= 2) {
++     n <- eval( parse(text=args[2]))
++     if (nargs >= 3) {
++       m <- eval( parse(text=args[3]))
++     }
++   }
++ }
+> set.seed(seed)
+> 
+> 
+> print(c(seed, n, m))
+[1] 2000    5    5
+> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+          [,1]      [,2]     [,3]       [,4]      [,5]
+[1,] 19.590618 11.969166 2.322704  1.5313663  3.509013
+[2,]  4.328520  6.403742 1.476302 15.6184668 21.942411
+[3,] 11.414899  2.247588 4.978604  0.8421314 30.152508
+[4,] 12.574571 20.976608 2.936833  3.9904137 16.256799
+[5,]  6.266144 22.492503 5.813020 23.0723690  5.369473
+> 
+> proc.time()
+   user  system elapsed 
+  0.244   0.008   0.252 
