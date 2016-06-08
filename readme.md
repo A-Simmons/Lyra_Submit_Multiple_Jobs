@@ -148,8 +148,150 @@ which produces something like for `seed = 2000`, `n = 5`, `m=5` ([RAND_TEST3](ht
 ```
 
 # Full Simple Example
+In this example we will go through more thoroughly the Rand Matrix Example (all files found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example)). We're going to submit a rather small amount of jubs to the HPC, 5. Each job will have different parameters and in some cases a different number of parameters. 
+The csv we're working with (found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/rand_matrix_data.csv)) is (it should be noted the header row is not actually in the csv file. Functionality to allow headers is being worked on)
+
+| JOBNAME | WALLTIME | MEMORY | Seed | Rows | Cols |
+| --- | --- | --- | --- | --- | --- |
+|RAND_TEST1|0:05:00|10mb|1| | |
+|RAND_TEST2|0:05:00|10mb|1000|5| |
+|RAND_TEST3|0:05:00|10mb|2000|5|5 |
+|RAND_TEST4|0:05:00|10mb|3000|1|7 |
+|RAND_TEST5|0:05:00|10mb|4000|6|1 |
+
+Logged into Lyra I can check all the necessary files are in my current working directory with `ls -l`. We can see the **pbsMulti.sh**, **subJob.pbs**, **rand_matrix_data.csv** and **rand_matrix_script.R** are in our directory. 
+```shell
+user@lyra04:~/ShellScript_Example/Rand_Matrix_Example> ls -l
+total 16
+-r-xr-xr-x 1 user default 1113 Jun  8 14:40 pbsMulti.sh
+-rw-r--r-- 1 user default  159 Jun  8 14:41 rand_matrix_data.csv
+-rw-r--r-- 1 user default  409 Jun  8 14:41 rand_matrix_script.R
+-rwxr--r-- 1 user default  201 Jun  8 14:40 subJob.pbs
+```
+
+Moving onwards I can submit the jobs to the HPC with `./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv`
+```shell
+user@lyra04:~/ShellScript_Example/Rand_Matrix_Example> ./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv 
+
+### RAND_TEST1 ###
+PARAM 1: 1
+665655.pbs
+
+### RAND_TEST2 ###
+PARAM 1: 1000
+PARAM 2: 5
+665656.pbs
+
+### RAND_TEST3 ###
+PARAM 1: 2000
+PARAM 2: 5
+PARAM 3: 5
+665657.pbs
+
+### RAND_TEST4 ###
+PARAM 1: 3000
+PARAM 2: 1
+PARAM 3: 7
+665658.pbs
+
+### RAND_TEST5 ###
+PARAM 1: 4000
+PARAM 2: 6
+PARAM 3: 1
+665659.pbs
+```
+We notice that the script outputs the parameters for each job under the head `### JOBNAME ###`. This doesn't change anything functionally and a quiet mode is being considered for implementation it does serve as a useful platform for checking for any anomalous parameters that could arise from using strings with commas or other problems. 
+
+Looking at he outputs, visible either through a file explorer if you've mounted the hps file server or using the list directory command `ls -l` there are a heap of **.e**, **.o** and **.out** files. In fact, there is one for each job. 
+```shell 
+user@lyra04:~/ShellScript_Example/Rand_Matrix_Example> ls -l
+total 56
+-r-xr-xr-x 1 user default 1113 Jun  8 14:40 pbsMulti.sh
+-rw-r--r-- 1 user default  159 Jun  8 14:53 rand_matrix_data.csv
+-rw-r--r-- 1 user default  409 Jun  8 14:41 rand_matrix_script.R
+-rw------- 1 user default    0 Jun  8 14:56 RAND_TEST1.e669853
+-rw------- 1 user default  133 Jun  8 14:56 RAND_TEST1.o669853
+-rw------- 1 user default 2517 Jun  8 14:56 RAND_TEST1.out
+-rw------- 1 user default    0 Jun  8 14:56 RAND_TEST2.e669854
+-rw------- 1 user default  133 Jun  8 14:56 RAND_TEST2.o669854
+-rw------- 1 user default 1926 Jun  8 14:56 RAND_TEST2.out
+-rw------- 1 user default    0 Jun  8 14:56 RAND_TEST3.e669855
+-rw------- 1 user default  133 Jun  8 14:56 RAND_TEST3.o669855
+-rw------- 1 user default 1566 Jun  8 14:56 RAND_TEST3.out
+-rw------- 1 user default    0 Jun  8 14:56 RAND_TEST4.e669856
+-rw------- 1 user default  133 Jun  8 14:56 RAND_TEST4.o669856
+-rw------- 1 user default 1529 Jun  8 14:56 RAND_TEST4.out
+-rw------- 1 user default    0 Jun  8 14:56 RAND_TEST5.e669857
+-rw------- 1 user default  133 Jun  8 14:56 RAND_TEST5.o669857
+-rw------- 1 user default 1507 Jun  8 14:56 RAND_TEST5.out
+-rwxr--r-- 1 user default  201 Jun  8 14:40 subJob.pbs
+```
+The **.e** files should be empty unless an error occured. The **.o** files will be mostly empty, containing just cpu, welltime and memory statistics of the job. The **.out** file contains the results we're interested in for this example. Anything printed to the console in R is saved to this file; along with the standard R intro spiel [RAND_TEST1.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST1.out) contains the outputs from our simple code to construct a random matrix. 
+
+```R
+> args<-commandArgs(TRUE)
+> 
+> # Set some defaults
+> seed <- 1
+> n <- 10
+> m <- 10
+> 
+> # Replace defaults with arguments if they exist
+> nargs = length(args)
+> if (nargs >= 1) {
++   seed <- eval( parse(text=args[1]))
++   if (nargs >= 2) {
++     n <- eval( parse(text=args[2]))
++     if (nargs >= 3) {
++       m <- eval( parse(text=args[3]))
++     }
++   }
++ }
+> set.seed(seed)
+> 
+> 
+> print(c(seed, n, m))
+[1]  1 10 10
+> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+           [,1]      [,2]       [,3]       [,4]      [,5]      [,6]       [,7]
+ [1,]  7.551818 13.907351 23.6451525 14.3528534 10.798811  4.222424  0.8967408
+ [2,] 11.816428  7.620299  6.4189259  0.3726853 10.282469 21.787726 11.0817666
+ [3,]  1.457067 12.376036  2.9412039  3.2401015 12.922616 32.177890  2.4726425
+ [4,]  1.397953 44.239342  5.6586552 13.2046793 12.531054  5.578294 15.7198685
+ [5,]  4.360686 10.545432  1.0607262  2.0351035  5.546414  5.946177 48.3281274
+ [6,] 28.949685 10.352439  0.5943916 10.2272588  3.012830  9.773958  4.3113213
+ [7,] 12.295621 18.760352  5.7871246  3.0174093 12.931247  2.098666 27.3038931
+ [8,]  5.396828  6.547466 39.5893285  7.2521430  9.945558  3.094479 11.3683142
+ [9,]  9.565675  3.369335 11.7331211  7.5154269  5.141743 11.059363  8.1336825
+[10,]  1.470460  5.884797  9.9681296  2.3502745 20.078324  7.741878  8.3700649
+            [,8]       [,9]     [,10]
+ [1,] 17.8476540  3.8619356 10.350971
+ [2,] 23.1247163 10.0825646  4.474519
+ [3,] 29.0988727  8.1851419 10.436085
+ [4,]  2.8559098  0.5926121  2.608282
+ [5,]  3.8878677 22.8385347  6.812291
+ [6,]  0.5205545  8.0417091  2.637383
+ [7,]  3.5187050 15.8369608  4.466057
+ [8,] 15.6524135 12.3379151  2.106069
+ [9,]  8.1453581 13.4564402  1.325714
+[10,] 27.5924379 21.0037723  3.488883
+> 
+> proc.time()
+   user  system elapsed 
+  0.192   0.012   0.209 
+  ```
+  Notice that in the CSV table we didn't specify the number or rows or cols; instead it defaulted to 10 for each in the R script. Let's have a look at [RAND_TEST4.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST4.out) where we did define the number of rows and cols, 1 and 7 resepctively.
+  ```R
+  > print(c(seed, n, m))
+[1] 3000    1    7
+> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+         [,1]      [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[1,] 2.582148 0.9671692 5.588815 9.444745 13.65639 7.254105 23.30046
+```
+
 
 # Task Lists
 - [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs 
 - [ ] Add functionality to load more modules than just R
 - [ ] Allow headers in CSV
+- [ ] Add a quiet mode
