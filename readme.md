@@ -6,7 +6,7 @@ This script is a no-dependency, easy to use solution for submiting multiple jobs
 What originally took messing around with PBS scripts and creating multiple R scripts and pbs files then submitting `qsub` command after `qsub` command has been replaced a single .csv file and a single call of 
 
 ```shell
-.pbsMulti <R_script.R> <parameter.csv>
+./pbsMulti <R_script.R> <parameter.csv>
 ```
 
 # Installation
