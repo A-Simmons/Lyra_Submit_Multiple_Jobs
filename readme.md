@@ -61,13 +61,93 @@ At present there are two major restrictions
 ## Calling the script
 Actually calling the script is as easy as using the standard `qsub` command. The template below needs two addition parameters: the R script to be called by the HPC and also where the parameters will be sent as well as the csv file to load the parameters. 
 ```shell
-.pbsMulti <R_script.R> <parameter.csv>
+./pbsMulti <R_script.R> <parameter.csv>
 ```
 
 For example, to call the [Rand Matrix example](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example), again we would need to copy the **subJobs.pbs** and **pbsMulti.sh** files into the Rand_Matrix_Example folder 
 ```shell
-.pbsMulti rand_matrix_script.R rand_matrix_data.csv
+./pbsMulti rand_matrix_script.R rand_matrix_data.csv
 ```
+# Letting Your R Script Accept Arguments
+Using [`commandArgs(TRUE)`](https://stat.ethz.ch/R-manual/R-devel/library/base/html/commandArgs.html) from **base-R** we can pull all the arguments sent from the job submission script to our R script into a character vector with:
+```R
+args<-commandArgs(TRUE)
+```
+Now it's just a matter of pulling all the arguments out by parsing the text stored in each element of `args` and evaluating the parsed text. As an example of pulling out the first three arguments
+```R
+someVar1 <- eval(parse(text=args[1]))
+someVar2 <- eval(parse(text=args[2]))
+someVar3 <- eval(parse(text=args[3]))
+```
+If we don't know if three arguments are going to be sent we can use default values and use `length(args)` to check how many arguments were actually sent
+```R
+someVar1 <- someDefault1
+someVar2 <- someDefault2
+someVar3 <- someDefault3
+nargs <- length(args)
+```
+And then use nargs to override the defaults
+```R
+if (nargs >= 1) {
+  someVar1 <- eval( parse(text=args[1]))
+  if (nargs >= 2) {
+    someVar2 <- eval( parse(text=args[2]))
+    if (nargs >= 3) {
+      someVar3 <- eval( parse(text=args[3]))
+    }
+  }
+}
+```
+or similarly
+```R
+if (nargs >= 1) {
+  someVar1 <- eval( parse(text=args[1]))
+}
+if (nargs >= 2) {
+  someVar2 <- eval( parse(text=args[2]))
+}
+if (nargs >= 3) {
+  someVar3 <- eval( parse(text=args[3]))
+}
+```
+Once your arguments/parameters have been loaded you're free to use R like you normally would. In our super basic Rand Matrix Example we use three parameters to define a matrix of different dimensions filled with random numbers. 
+```R
+args<-commandArgs(TRUE)
+
+# Set some defaults
+seed <- 1
+n <- 10
+m <- 10
+
+# Replace defaults with arguments if they exist
+nargs = length(args)
+if (nargs >= 1) {
+  seed <- eval( parse(text=args[1]))
+  if (nargs >= 2) {
+    n <- eval( parse(text=args[2]))
+    if (nargs >= 3) {
+      m <- eval( parse(text=args[3]))
+    }
+  }
+}
+set.seed(seed)
+print(c(seed, n, m))
+print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+```
+which produces something like for `seed = 2000`, `n = 5`, `m=5` ([RAND_TEST3](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST3.out) from the Rand Matrix Example). Actual values may differ from computer to computer.
+```R
+> print(c(seed, n, m))
+[1] 2000    5    5
+> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+          [,1]      [,2]     [,3]       [,4]      [,5]
+[1,] 19.590618 11.969166 2.322704  1.5313663  3.509013
+[2,]  4.328520  6.403742 1.476302 15.6184668 21.942411
+[3,] 11.414899  2.247588 4.978604  0.8421314 30.152508
+[4,] 12.574571 20.976608 2.936833  3.9904137 16.256799
+[5,]  6.266144 22.492503 5.813020 23.0723690  5.369473
+```
+
+# Full Simple Example
 
 # Task Lists
 - [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs 
