@@ -1,3 +1,5 @@
+Ensuring you've placed the simpleFunction.R and data.csv in the same folder as the pbsMulti.sh and subJob.pbs scripts. 
+
 To run code on the hpc use the command
 ./pbsMulti.sh <R_script.R> <data_file.csv>
 
