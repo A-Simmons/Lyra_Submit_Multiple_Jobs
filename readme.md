@@ -15,13 +15,13 @@ Copy the **subJobs.pbs** and **pbsMulti.sh** files into the directory that conta
 While using modules except `R/3.2.4_gcc` is not supported, you can add additional modules by editing the **subJobs.pbs** file to include below the module load R line, for example:
 
 ### R Jags package
-``` 
+``` shell
 module load R/3.2.4_gcc
 module load jags/4.1.0/gcc/4.4.7
 ```
 
 ### gdal and gdalUtils package
-```
+```shell
 module load R/3.2.4_gcc
 module load gdal/2.1.0/gcc/4.4.7
 module load proj.4/4.9.3/gcc/4.4.7
@@ -29,7 +29,7 @@ module load proj.4/4.9.3/gcc/4.4.7
 
 ## Potential Permissions Error
 If you experience the following error 
-```
+```shell
 -bash: ./pbsMulti.sh: Permission denied
 ```
 then your version doesn't have execute permissions to run. This can be fixed by calling `chmod 755 pbsMulti.sh` to give read and execute permissions to most users write access to the user.
@@ -59,6 +59,15 @@ At present there are two major restrictions
 2. Strings can not contain commas since they conflict with the commas that seperate values in the .csv file. 
 
 ## Calling the script
+Actually calling the script is as easy as using the standard `qsub` command. The template below needs two addition parameters: the R script to be called by the HPC and also where the parameters will be sent as well as the csv file to load the parameters. 
+```shell
+.pbsMulti <R_script.R> <parameter.csv>
+```
+
+For example, to call the [Rand Matrix example](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example), again we would need to copy the **subJobs.pbs** and **pbsMulti.sh** files into the Rand_Matrix_Example folder 
+```shell
+.pbsMulti rand_matrix_script.R rand_matrix_data.csv
+```
 
 # Task Lists
 - [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs 
