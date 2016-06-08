@@ -288,7 +288,7 @@ The **.e** files should be empty unless an error occured. The **.o** files will 
          [,1]      [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
 [1,] 2.582148 0.9671692 5.588815 9.444745 13.65639 7.254105 23.30046
 ```
-
+Hopefully this example has highlighted how the parameters from the csv file is passed into the R script and interacted with. 
 
 # Task Lists
 - [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs 
