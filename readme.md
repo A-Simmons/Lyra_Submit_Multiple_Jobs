@@ -32,7 +32,7 @@ If you experience the following error
 ```shell
 -bash: ./pbsMulti.sh: Permission denied
 ```
-then your version doesn't have execute permissions to run. This can be fixed by calling `chmod 555 pbsMulti.sh` to give read and execute permissions to most users write access to the user.
+then your version doesn't have execute permissions to run. This can be fixed by calling `chmod 555 pbsMulti.sh` to give read and execute permissions.
 
 # Usage
 ## CSV file
