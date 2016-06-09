@@ -57,7 +57,7 @@ At present there are three major restrictions
 
 1. Parameters must be numerical and strings
 2. Strings can not contain commas since they conflict with the commas that seperate values in the .csv file. 
-3. Headers are passed to R and parsed as Header=Value. As such headers much be a valid variable name. 
+3. Headers are passed to R and parsed as `Header=Value`. As such headers much be a valid variable name. 
 
 ## Calling the script
 Actually calling the script is as easy as using the standard `qsub` command. The template below needs two addition parameters: the R script to be called by the HPC and also where the parameters will be sent as well as the csv file to load the parameters. 
