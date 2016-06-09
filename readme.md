@@ -152,7 +152,7 @@ which produces something like for `seed = 2000`, `rows = 5`, `cols=5` ([RAND_TES
 In this example we will go through more thoroughly the Rand Matrix Example (all files found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example)). We're going to submit a rather small amount of jubs to the HPC, 5. Each job will have different parameters and in some cases a different number of parameters. 
 The csv we're working with (found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/rand_matrix_data.csv)) is (it should be noted the header row is not actually in the csv file. Functionality to allow headers is being worked on)
 
-| JOBNAME | WALLTIME | MEMORY | Seed | Rows | Cols |
+| JOBNAME | WALLTIME | MEMORY | seed | rows | cols |
 | --- | --- | --- | --- | --- | --- |
 |RAND_TEST1|0:05:00|10mb|1| | |
 |RAND_TEST2|0:05:00|10mb|1000|5| |
