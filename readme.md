@@ -86,7 +86,7 @@ someVar2 <- someDefault2
 someVar3 <- someDefault3
 nargs <- length(args)
 ```
-And then use nargs to override the defaults
+And then use nargs to override the defaults. 
 ```R
 if (nargs >= 1) {
   someVar1 <- eval( parse(text=args[1]))
@@ -110,31 +110,32 @@ if (nargs >= 3) {
   someVar3 <- eval( parse(text=args[3]))
 }
 ```
+It should be noted that the variables get parsed in the form args[i]="Header_i=Value_i" for any non-empty value fields. As such, if you have any variables with same name as the header field, it will be overwritten. This can also be taken advantage of to more succinctly define variables by using the assignment directly to a variable with the header name. While the above two forms can be used, the following form with appropriate header naming is preferred for ensuring correct variable initialisation 
+```R
+for(i in 1:length(args)){
+  eval(parse(text=args[[i]]))
+}
+```
+
 Once your arguments/parameters have been loaded you're free to use R like you normally would. In our super basic Rand Matrix Example we use three parameters to define a matrix of different dimensions filled with random numbers. 
 ```R
 args<-commandArgs(TRUE)
 
 # Set some defaults
 seed <- 1
-n <- 10
-m <- 10
+rows <- 10
+cols <- 10
 
 # Replace defaults with arguments if they exist
-nargs = length(args)
-if (nargs >= 1) {
-  seed <- eval( parse(text=args[1]))
-  if (nargs >= 2) {
-    n <- eval( parse(text=args[2]))
-    if (nargs >= 3) {
-      m <- eval( parse(text=args[3]))
-    }
-  }
+for(i in 1:length(args)){
+  eval(parse(text=args[[i]]))
 }
+
 set.seed(seed)
 print(c(seed, n, m))
-print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+print(matrix(rexp(200, rate=.1),rows=n,cols=m))
 ```
-which produces something like for `seed = 2000`, `n = 5`, `m=5` ([RAND_TEST3](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST3.out) from the Rand Matrix Example). Actual values may differ from computer to computer.
+which produces something like for `seed = 2000`, `rows = 5`, `cols=5` ([RAND_TEST3](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST3.out) from the Rand Matrix Example). Actual values may differ from computer to computer.
 ```R
 > print(c(seed, n, m))
 [1] 2000    5    5
@@ -171,60 +172,62 @@ total 16
 
 Moving onwards I can submit the jobs to the HPC with `./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv`
 ```shell
-user@lyra04:~/ShellScript_Example/Rand_Matrix_Example> ./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv 
+user@lyra04:~/ShellScript_Example> ./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv 
 
 ### RAND_TEST1 ###
-PARAM 1: 1
-665655.pbs
+seed: 1
+703909.pbs
 
 ### RAND_TEST2 ###
-PARAM 1: 1000
-PARAM 2: 5
-665656.pbs
+seed: 1000
+rows: 5
+703910.pbs
 
 ### RAND_TEST3 ###
-PARAM 1: 2000
-PARAM 2: 5
-PARAM 3: 5
-665657.pbs
+seed: 2000
+rows: 5
+cols: 5
+703911.pbs
 
 ### RAND_TEST4 ###
-PARAM 1: 3000
-PARAM 2: 1
-PARAM 3: 7
-665658.pbs
+seed: 3000
+rows: 1
+cols: 7
+703912.pbs
 
 ### RAND_TEST5 ###
-PARAM 1: 4000
-PARAM 2: 6
-PARAM 3: 1
-665659.pbs
+seed: 4000
+rows: 6
+cols: 1
+703913.pbs
 ```
 We notice that the script outputs the parameters for each job under the head `### JOBNAME ###`. This doesn't change anything functionally and a quiet mode is being considered for implementation it does serve as a useful platform for checking for any anomalous parameters that could arise from using strings with commas or other problems. 
 
 Looking at he outputs, visible either through a file explorer if you've mounted the hps file server or using the list directory command `ls -l` there are a heap of **.e**, **.o** and **.out** files. In fact, there is one for each job. 
 ```shell 
-user@lyra04:~/ShellScript_Example/Rand_Matrix_Example> ls -l
-total 56
--r-xr-xr-x 1 user default 1113 Jun  8 14:40 pbsMulti.sh
--rw-r--r-- 1 user default  159 Jun  8 14:53 rand_matrix_data.csv
--rw-r--r-- 1 user default  409 Jun  8 14:41 rand_matrix_script.R
--rw------- 1 user default    0 Jun  8 14:56 RAND_TEST1.e669853
--rw------- 1 user default  133 Jun  8 14:56 RAND_TEST1.o669853
--rw------- 1 user default 2517 Jun  8 14:56 RAND_TEST1.out
--rw------- 1 user default    0 Jun  8 14:56 RAND_TEST2.e669854
--rw------- 1 user default  133 Jun  8 14:56 RAND_TEST2.o669854
--rw------- 1 user default 1926 Jun  8 14:56 RAND_TEST2.out
--rw------- 1 user default    0 Jun  8 14:56 RAND_TEST3.e669855
--rw------- 1 user default  133 Jun  8 14:56 RAND_TEST3.o669855
--rw------- 1 user default 1566 Jun  8 14:56 RAND_TEST3.out
--rw------- 1 user default    0 Jun  8 14:56 RAND_TEST4.e669856
--rw------- 1 user default  133 Jun  8 14:56 RAND_TEST4.o669856
--rw------- 1 user default 1529 Jun  8 14:56 RAND_TEST4.out
--rw------- 1 user default    0 Jun  8 14:56 RAND_TEST5.e669857
--rw------- 1 user default  133 Jun  8 14:56 RAND_TEST5.o669857
--rw------- 1 user default 1507 Jun  8 14:56 RAND_TEST5.out
--rwxr--r-- 1 user default  201 Jun  8 14:40 subJob.pbs
+user@lyra04:~/ShellScript_Example> ls -l
+total 76
+-rwxr-xr-x 1 user default 1221 Jun 10 08:27 pbsMulti.sh
+-rw-r--r-- 1 user default  198 Jun 10 09:15 rand_matrix_data.csv
+drwxr-xr-x 2 user default 4096 Jun  8 15:01 Rand_Matrix_Example
+-rw-r--r-- 1 user default  271 Jun 10 09:15 rand_matrix_script.R
+-rw------- 1 user default    0 Jun 10 09:24 RAND_TEST1.e703918
+-rw------- 1 user default  134 Jun 10 09:24 RAND_TEST1.o703918
+-rw------- 1 user default 2362 Jun 10 09:24 RAND_TEST1.out
+-rw------- 1 user default    0 Jun 10 09:24 RAND_TEST2.e703919
+-rw------- 1 user default  134 Jun 10 09:24 RAND_TEST2.o703919
+-rw------- 1 user default 1771 Jun 10 09:24 RAND_TEST2.out
+-rw------- 1 user default    0 Jun 10 09:24 RAND_TEST3.e703920
+-rw------- 1 user default  134 Jun 10 09:24 RAND_TEST3.o703920
+-rw------- 1 user default 1411 Jun 10 09:24 RAND_TEST3.out
+-rw------- 1 user default    0 Jun 10 09:24 RAND_TEST4.e703921
+-rw------- 1 user default  134 Jun 10 09:24 RAND_TEST4.o703921
+-rw------- 1 user default 1366 Jun 10 09:24 RAND_TEST4.out
+-rw------- 1 user default    0 Jun 10 09:24 RAND_TEST5.e703922
+-rw------- 1 user default  134 Jun 10 09:24 RAND_TEST5.o703922
+-rw------- 1 user default 1344 Jun 10 09:24 RAND_TEST5.out
+-rwxr--r-- 1 user default  201 Jun  8 07:20 subJob.pbs
+r-- 1 user default  201 Jun  8 14:40 subJob.pbs
 ```
 The **.e** files should be empty unless an error occured. The **.o** files will be mostly empty, containing just cpu, welltime and memory statistics of the job. The **.out** file contains the results we're interested in for this example. Anything printed to the console in R is saved to this file; along with the standard R intro spiel [RAND_TEST1.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST1.out) contains the outputs from our simple code to construct a random matrix. 
 
@@ -233,26 +236,18 @@ The **.e** files should be empty unless an error occured. The **.o** files will 
 > 
 > # Set some defaults
 > seed <- 1
-> n <- 10
-> m <- 10
+> rows <- 10
+> cols <- 10
 > 
 > # Replace defaults with arguments if they exist
-> nargs = length(args)
-> if (nargs >= 1) {
-+   seed <- eval( parse(text=args[1]))
-+   if (nargs >= 2) {
-+     n <- eval( parse(text=args[2]))
-+     if (nargs >= 3) {
-+       m <- eval( parse(text=args[3]))
-+     }
-+   }
+> for(i in 1:length(args)){
++   eval(parse(text=args[[i]]))
 + }
+> 
 > set.seed(seed)
-> 
-> 
-> print(c(seed, n, m))
+> print(c(seed, rows, cols))
 [1]  1 10 10
-> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+> print(matrix(rexp(200, rate=.1),rows,cols))
            [,1]      [,2]       [,3]       [,4]      [,5]      [,6]       [,7]
  [1,]  7.551818 13.907351 23.6451525 14.3528534 10.798811  4.222424  0.8967408
  [2,] 11.816428  7.620299  6.4189259  0.3726853 10.282469 21.787726 11.0817666
@@ -278,13 +273,13 @@ The **.e** files should be empty unless an error occured. The **.o** files will 
 > 
 > proc.time()
    user  system elapsed 
-  0.192   0.012   0.209 
+  0.180   0.032   0.248 
   ```
   Notice that in the CSV table we didn't specify the number or rows or cols; instead it defaulted to 10 for each in the R script. Let's have a look at [RAND_TEST4.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST4.out) where we did define the number of rows and cols, 1 and 7 resepctively.
   ```R
-  > print(c(seed, n, m))
+> print(c(seed, rows, cols))
 [1] 3000    1    7
-> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+> print(matrix(rexp(200, rate=.1),rows,cols))
          [,1]      [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
 [1,] 2.582148 0.9671692 5.588815 9.444745 13.65639 7.254105 23.30046
 ```
@@ -293,5 +288,5 @@ Hopefully this example has highlighted how the parameters from the csv file is p
 # Task Lists
 - [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs 
 - [ ] Add functionality to load more modules than just R
-- [ ] Allow headers in CSV
+- [x] Allow headers in CSV
 - [ ] Add a quiet mode
