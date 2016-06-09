@@ -53,10 +53,11 @@ As can be seen in the above example, the first 3 columns are restricted and must
 Values in any other columns are passed directly to the R script as arguments. The above example contains 3 parameters, however the script scales up and down depending on the number of columns used. 
 
 ### Restrictions
-At present there are two major restrictions
+At present there are three major restrictions
 
 1. Parameters must be numerical and strings
 2. Strings can not contain commas since they conflict with the commas that seperate values in the .csv file. 
+3. Headers are passed to R and parsed as Header=Value. As such headers much be a valid variable name. 
 
 ## Calling the script
 Actually calling the script is as easy as using the standard `qsub` command. The template below needs two addition parameters: the R script to be called by the HPC and also where the parameters will be sent as well as the csv file to load the parameters. 
