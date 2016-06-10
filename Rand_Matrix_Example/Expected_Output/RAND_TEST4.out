@@ -21,32 +21,24 @@ Type 'q()' to quit R.
 > 
 > # Set some defaults
 > seed <- 1
-> n <- 10
-> m <- 10
+> rows <- 10
+> cols <- 10
 > 
 > # Replace defaults with arguments if they exist
-> nargs = length(args)
-> if (nargs >= 1) {
-+   seed <- eval( parse(text=args[1]))
-+   if (nargs >= 2) {
-+     n <- eval( parse(text=args[2]))
-+     if (nargs >= 3) {
-+       m <- eval( parse(text=args[3]))
-+     }
-+   }
+> for(i in 1:length(args)){
++   eval(parse(text=args[[i]]))
 + }
+> 
 > set.seed(seed)
-> 
-> 
-> print(c(seed, n, m))
+> print(c(seed, rows, cols))
 [1] 3000    1    7
-> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+> print(matrix(rexp(200, rate=.1),rows,cols))
          [,1]      [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
 [1,] 2.582148 0.9671692 5.588815 9.444745 13.65639 7.254105 23.30046
 Warning message:
-In matrix(rexp(200, rate = 0.1), nrow = n, ncol = m) :
+In matrix(rexp(200, rate = 0.1), rows, cols) :
   data length [200] is not a sub-multiple or multiple of the number of columns [7]
 > 
 > proc.time()
    user  system elapsed 
-  0.200   0.024   0.252 
+  0.208   0.020   0.227 
