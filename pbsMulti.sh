@@ -22,22 +22,46 @@ while read -a line; do
 	echo
 	echo '### '${line[0]}' ###'
 	# ParamString holds the argument string for passing all the arguments/parameters
-	ParamString="scriptFile=$1,argString=--args"
-
+	ParamStringBase="scriptFile=$1,argString=--args"
+	repeat=1
+	Jobname_base=""
+	Walltime=""
+	Memory=""
 	# From each line read through each column
 	for i in "${!line[@]}"; do
-		# [ Test values are part of argument list ] && [ Check if values are not empty ]
-		if [ "$i" -gt "2" ] && [ ${#line[i]} -gt "0" ] ; then
+		# See if
+		if [[ "${header_array[i]}" == "Jobname" ]]; then
+			Jobname_base=${line[i]}
+		elif [ "${header_array[i]}" == "Walltime" ]; then
+			Walltime=${line[i]}
+		elif	[ "${header_array[i]}" == "Memory" ]; then
+			Memory=${line[i]}
+		elif	[ "${header_array[i]}" == "Repeat" ]; then
+			repeat=${line[i]}
+		else
 			# Add new parameter
-			ParamString=$ParamString" ${header_array[i]}=${line[i]}"
+			ParamStringBase=$ParamStringBase" ${header_array[i]}=${line[i]}"
 			echo "${header_array[i]}: ${line[i]}"
 		fi
 	done
-	ParamString="-v $ParamString"
+	ParamString="-v $ParamStringBase"
 
-	# Submit job
+	# Submit job for loop if repeat > 1
 	IFS=$OLDIFS
-	qsub "$ParamString" -N ${line[0]} -l walltime=${line[1]} -l mem=${line[2]} subJob.pbs
+	for i in $(seq 1 1 $repeat); do
+		# Add random seed the user can use 
+		RNG_Seed=$RANDOM
+		ParamString="-v $ParamStringBase""RNG_Seed=$RNG_Seed"
+
+		# Adjust jobname that is sent as a parameter to R script if Job is being repeated
+		Jobname=$Jobname_base
+		if [ "$repeat" -ge "1" ]; then
+			Jobname="$Jobname""_$i"
+		fi
+		ParamString=$ParamStringBase" Jobname=$Jobname"
+		# Submit job to LYRA
+		qsub "$ParamString" -N $Jobname -l walltime=$Walltime -l mem=$Memory subJob.pbs
+	done
 	IFS=','
 done < INPUT # Ends the loop
 
