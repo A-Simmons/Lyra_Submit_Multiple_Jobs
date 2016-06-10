@@ -21,26 +21,18 @@ Type 'q()' to quit R.
 > 
 > # Set some defaults
 > seed <- 1
-> n <- 10
-> m <- 10
+> rows <- 10
+> cols <- 10
 > 
 > # Replace defaults with arguments if they exist
-> nargs = length(args)
-> if (nargs >= 1) {
-+   seed <- eval( parse(text=args[1]))
-+   if (nargs >= 2) {
-+     n <- eval( parse(text=args[2]))
-+     if (nargs >= 3) {
-+       m <- eval( parse(text=args[3]))
-+     }
-+   }
+> for(i in 1:length(args)){
++   eval(parse(text=args[[i]]))
 + }
+> 
 > set.seed(seed)
-> 
-> 
-> print(c(seed, n, m))
+> print(c(seed, rows, cols))
 [1] 1000    5   10
-> print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
+> print(matrix(rexp(200, rate=.1),rows,cols))
           [,1]       [,2]      [,3]       [,4]       [,5]      [,6]       [,7]
 [1,] 10.046620  1.6707009  7.519662  0.9661088 37.6809754 4.2597956  4.5359858
 [2,]  5.176930 15.6382488 16.898508  3.5310655  5.6713807 4.0566994  3.6411179
@@ -56,4 +48,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  0.192   0.024   0.229 
+  0.180   0.028   0.208 
