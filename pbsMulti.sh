@@ -10,7 +10,8 @@ OLDIFS=$IFS
 
 # Defines the seperator of the csv to be , (Comma)
 IFS=','
-
+# Pull header from CSV file
+read -r -a header_array <<< "$(head -n 1 $2)"
 # Checks file was actually found, if not, exit
 [ ! -f $INPUT ] && { echo "$INPUT could not be found"; exit 99; }
 
@@ -23,8 +24,8 @@ while read -a line; do
 		# [ Test values are part of argument list ] && [ Check if values are not empty ] && [ check values are not carriage return ]
 		if [ "$i" -gt "2" ] && [ ${#line[i]} -gt "0" ] ; then
 			# Add new parameter
-			ParamString=$ParamString" ${line[i]}"
-			echo "PARAM $(($i-2)): ${line[i]}"
+			ParamString=$ParamString" ${header_array[i]}=${line[i]}"
+			echo "${header_array[i]}: ${line[i]}"
 		fi
 	done
 	ParamString="-v $ParamString"
