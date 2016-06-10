@@ -1,0 +1,25 @@
+#!/bin/bash -l
+
+# NOTE this PBS submission script is called from pbsmultiR.sh
+# with PBS options, R script and arguments supplied
+# via qsub -v "variable=value, .."
+
+#### load R module
+module load R/3.2.4_gcc
+
+#### cd to working directory
+cd $PBS_O_WORKDIR
+
+#### run R
+
+# let the R parallel library know how many cores are available
+export MC_CORES
+
+# ensure external libraries called by threads don't utilise additional parallelism
+export OMP_NUM_THREADS=1
+
+# keep record in PBS output file of what this job ran
+echo executing: R CMD BATCH --no-save --no-restore "$argString" "$scriptFile" $PBS_JOBNAME.out
+
+R CMD BATCH --no-save --no-restore "$argString" "$scriptFile" $PBS_JOBNAME.out
+
