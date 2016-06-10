@@ -5,7 +5,7 @@ cat $1 > INPUT
 
 # Reads in the data file 'data.csv' and overwrites it to the file INPUT
 dos2unix -q $2
-cat $2 > INPUT
+tail -n +2 $2 > INPUT
 OLDIFS=$IFS
 
 # Defines the seperator of the csv to be , (Comma)

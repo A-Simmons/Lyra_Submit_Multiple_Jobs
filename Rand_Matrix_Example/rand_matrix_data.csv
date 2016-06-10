@@ -1,3 +1,4 @@
+Jobname,Walltime,Memory,seed,rows,cols
 RAND_TEST1,0:05:00,10mb,1,,
 RAND_TEST2,0:05:00,10mb,1000,5,
 RAND_TEST3,0:05:00,10mb,2000,5,5
