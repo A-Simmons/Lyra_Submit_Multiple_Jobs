@@ -1,16 +1,16 @@
 # Lyra Submit Multiple Jobs
-Making submitting multiple jobs to the Lyra HPC easy! 
+Making submitting multiple jobs to the Lyra HPC easy!
 
 This script is a no-dependency, easy to use solution for submiting multiple jobs to Lyra where each job requires different parameters to be loaded. Could be as something as simple as guaranteeing the random number generator seed is different for each job to a script that loads 50 parameters that change from job to job.
 
-What originally took messing around with PBS scripts and creating multiple R scripts and pbs files then submitting `qsub` command after `qsub` command has been replaced a single .csv file and a single call of 
+What originally took messing around with PBS scripts and creating multiple R scripts and pbs files then submitting `qsub` command after `qsub` command has been replaced a single .csv file and a single call of
 
 ```shell
 ./pbsMulti <R_script.R> <parameter.csv>
 ```
 
 # Installation
-Copy the **subJobs.pbs** and **pbsMulti.sh** files into the directory that contains the R script you wish to pass arguments to. 
+Copy the **subJobs.pbs** and **pbsMulti.sh** files into the directory that contains the R script you wish to pass arguments to.
 
 While using modules except `R/3.2.4_gcc` is not supported, you can add additional modules by editing the **subJobs.pbs** file to include below the module load R line, for example:
 
@@ -28,7 +28,7 @@ module load proj.4/4.9.3/gcc/4.4.7
 ```
 
 ## Potential Permissions Error
-If you experience the following error 
+If you experience the following error
 ```shell
 -bash: ./pbsMulti.sh: Permission denied
 ```
@@ -50,22 +50,22 @@ As can be seen in the above example, the first 3 columns are restricted and must
 2. Walltime: Maximum time to dedicate to this job in the format <hours>:<minutes>:<seconds> such that in the first row 10:30:00 is asking for 10hours and 30minutes while the example in the second row is asking for 50hours.
 3. Maximum memory to allocate to this job. It is recommended to not ask for excessive memmory. The `<Jobname>.o<JobID>` gives both the walltime and memory statistics to aid in trimming requests for successive job submissions.
 
-Values in any other columns are passed directly to the R script as arguments. The above example contains 3 parameters, however the script scales up and down depending on the number of columns used. 
+Values in any other columns are passed directly to the R script as arguments. The above example contains 3 parameters, however the script scales up and down depending on the number of columns used.
 
 ### Restrictions
 At present there are three major restrictions
 
 1. Parameters must be numerical and strings
-2. Strings can not contain commas since they conflict with the commas that seperate values in the .csv file. 
-3. Headers are passed to R and parsed as `Header=Value`. As such headers much be a valid variable name. 
+2. Strings can not contain commas since they conflict with the commas that seperate values in the .csv file.
+3. Headers are passed to R and parsed as `Header=Value`. As such headers much be a valid variable name.
 
 ## Calling the script
-Actually calling the script is as easy as using the standard `qsub` command. The template below needs two addition parameters: the R script to be called by the HPC and also where the parameters will be sent as well as the csv file to load the parameters. 
+Actually calling the script is as easy as using the standard `qsub` command. The template below needs two addition parameters: the R script to be called by the HPC and also where the parameters will be sent as well as the csv file to load the parameters.
 ```shell
 ./pbsMulti <R_script.R> <parameter.csv>
 ```
 
-For example, to call the [Rand Matrix example](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example), again we would need to copy the **subJobs.pbs** and **pbsMulti.sh** files into the Rand_Matrix_Example folder 
+For example, to call the [Rand Matrix example](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example), again we would need to copy the **subJobs.pbs** and **pbsMulti.sh** files into the Rand_Matrix_Example folder
 ```shell
 ./pbsMulti rand_matrix_script.R rand_matrix_data.csv
 ```
@@ -87,7 +87,7 @@ someVar2 <- someDefault2
 someVar3 <- someDefault3
 nargs <- length(args)
 ```
-And then use nargs to override the defaults. 
+And then use nargs to override the defaults.
 ```R
 if (nargs >= 1) {
   someVar1 <- eval( parse(text=args[1]))
@@ -111,14 +111,14 @@ if (nargs >= 3) {
   someVar3 <- eval( parse(text=args[3]))
 }
 ```
-It should be noted that the variables get parsed in the form args[i]="Header_i=Value_i" for any non-empty value fields. As such, if you have any variables with same name as the header field, it will be overwritten. This can also be taken advantage of to more succinctly define variables by using the assignment directly to a variable with the header name. While the above two forms can be used, the following form with appropriate header naming is preferred for ensuring correct variable initialisation 
+It should be noted that the variables get parsed in the form args[i]="Header_i=Value_i" for any non-empty value fields. As such, if you have any variables with same name as the header field, it will be overwritten. This can also be taken advantage of to more succinctly define variables by using the assignment directly to a variable with the header name. While the above two forms can be used, the following form with appropriate header naming is preferred for ensuring correct variable initialisation
 ```R
 for(i in 1:length(args)){
   eval(parse(text=args[[i]]))
 }
 ```
 
-Once your arguments/parameters have been loaded you're free to use R like you normally would. In our super basic Rand Matrix Example we use three parameters to define a matrix of different dimensions filled with random numbers. 
+Once your arguments/parameters have been loaded you're free to use R like you normally would. In our super basic Rand Matrix Example we use three parameters to define a matrix of different dimensions filled with random numbers.
 ```R
 args<-commandArgs(TRUE)
 
@@ -150,7 +150,7 @@ which produces something like for `seed = 2000`, `rows = 5`, `cols=5` ([RAND_TES
 ```
 
 # Full Simple Example
-In this example we will go through more thoroughly the Rand Matrix Example (all files found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example)). We're going to submit a rather small amount of jubs to the HPC, 5. Each job will have different parameters and in some cases a different number of parameters. 
+In this example we will go through more thoroughly the Rand Matrix Example (all files found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/tree/master/Rand_Matrix_Example)). We're going to submit a rather small amount of jubs to the HPC, 5. Each job will have different parameters and in some cases a different number of parameters.
 The csv we're working with (found [here](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/rand_matrix_data.csv)) is (it should be noted the header row is not actually in the csv file. Functionality to allow headers is being worked on)
 
 | JOBNAME | WALLTIME | MEMORY | seed | rows | cols |
@@ -161,7 +161,7 @@ The csv we're working with (found [here](https://github.com/A-Simmons/Lyra_Submi
 |RAND_TEST4|0:05:00|10mb|3000|1|7 |
 |RAND_TEST5|0:05:00|10mb|4000|6|1 |
 
-Logged into Lyra I can check all the necessary files are in my current working directory with `ls -l`. We can see the **pbsMulti.sh**, **subJob.pbs**, **rand_matrix_data.csv** and **rand_matrix_script.R** are in our directory. 
+Logged into Lyra I can check all the necessary files are in my current working directory with `ls -l`. We can see the **pbsMulti.sh**, **subJob.pbs**, **rand_matrix_data.csv** and **rand_matrix_script.R** are in our directory.
 ```shell
 user@lyra04:~/ShellScript_Example/Rand_Matrix_Example> ls -l
 total 16
@@ -173,7 +173,7 @@ total 16
 
 Moving onwards I can submit the jobs to the HPC with `./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv`
 ```shell
-user@lyra04:~/ShellScript_Example> ./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv 
+user@lyra04:~/ShellScript_Example> ./pbsMulti.sh rand_matrix_script.R rand_matrix_data.csv
 
 ### RAND_TEST1 ###
 seed: 1
@@ -202,10 +202,10 @@ rows: 6
 cols: 1
 703913.pbs
 ```
-We notice that the script outputs the parameters for each job under the head `### JOBNAME ###`. This doesn't change anything functionally and a quiet mode is being considered for implementation it does serve as a useful platform for checking for any anomalous parameters that could arise from using strings with commas or other problems. 
+We notice that the script outputs the parameters for each job under the head `### JOBNAME ###`. This doesn't change anything functionally and a quiet mode is being considered for implementation it does serve as a useful platform for checking for any anomalous parameters that could arise from using strings with commas or other problems.
 
-Looking at he outputs, visible either through a file explorer if you've mounted the hps file server or using the list directory command `ls -l` there are a heap of **.e**, **.o** and **.out** files. In fact, there is one for each job. 
-```shell 
+Looking at he outputs, visible either through a file explorer if you've mounted the hps file server or using the list directory command `ls -l` there are a heap of **.e**, **.o** and **.out** files. In fact, there is one for each job.
+```shell
 user@lyra04:~/ShellScript_Example> ls -l
 total 76
 -rwxr-xr-x 1 user default 1221 Jun 10 08:27 pbsMulti.sh
@@ -230,21 +230,21 @@ drwxr-xr-x 2 user default 4096 Jun  8 15:01 Rand_Matrix_Example
 -rwxr--r-- 1 user default  201 Jun  8 07:20 subJob.pbs
 r-- 1 user default  201 Jun  8 14:40 subJob.pbs
 ```
-The **.e** files should be empty unless an error occured. The **.o** files will be mostly empty, containing just cpu, welltime and memory statistics of the job. The **.out** file contains the results we're interested in for this example. Anything printed to the console in R is saved to this file; along with the standard R intro spiel [RAND_TEST1.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST1.out) contains the outputs from our simple code to construct a random matrix. 
+The **.e** files should be empty unless an error occured. The **.o** files will be mostly empty, containing just cpu, welltime and memory statistics of the job. The **.out** file contains the results we're interested in for this example. Anything printed to the console in R is saved to this file; along with the standard R intro spiel [RAND_TEST1.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST1.out) contains the outputs from our simple code to construct a random matrix.
 
 ```R
 > args<-commandArgs(TRUE)
-> 
+>
 > # Set some defaults
 > seed <- 1
 > rows <- 10
 > cols <- 10
-> 
+>
 > # Replace defaults with arguments if they exist
 > for(i in 1:length(args)){
 +   eval(parse(text=args[[i]]))
 + }
-> 
+>
 > set.seed(seed)
 > print(c(seed, rows, cols))
 [1]  1 10 10
@@ -271,10 +271,10 @@ The **.e** files should be empty unless an error occured. The **.o** files will 
  [8,] 15.6524135 12.3379151  2.106069
  [9,]  8.1453581 13.4564402  1.325714
 [10,] 27.5924379 21.0037723  3.488883
-> 
+>
 > proc.time()
-   user  system elapsed 
-  0.180   0.032   0.248 
+   user  system elapsed
+  0.180   0.032   0.248
   ```
   Notice that in the CSV table we didn't specify the number or rows or cols; instead it defaulted to 10 for each in the R script. Let's have a look at [RAND_TEST4.out](https://github.com/A-Simmons/Lyra_Submit_Multiple_Jobs/blob/master/Rand_Matrix_Example/Expected_Output/RAND_TEST4.out) where we did define the number of rows and cols, 1 and 7 resepctively.
   ```R
@@ -284,10 +284,10 @@ The **.e** files should be empty unless an error occured. The **.o** files will 
          [,1]      [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
 [1,] 2.582148 0.9671692 5.588815 9.444745 13.65639 7.254105 23.30046
 ```
-Hopefully this example has highlighted how the parameters from the csv file is passed into the R script and interacted with. 
+Hopefully this example has highlighted how the parameters from the csv file is passed into the R script and interacted with.
 
 # Task Lists
-- [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs 
-- [ ] Add functionality to load more modules than just R
+- [x] Bash script completely automated. User only needs to edit their .csv file and Rscript for basic needs
 - [x] Allow headers in CSV
-- [ ] Add a quiet mode
+- [x] Add a quiet mode
+- [ ] Add functionality to load more modules than just R
