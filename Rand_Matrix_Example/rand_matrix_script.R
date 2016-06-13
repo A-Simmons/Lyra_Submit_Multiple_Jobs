@@ -2,14 +2,22 @@ args<-commandArgs(TRUE)
 
 # Set some defaults
 seed <- 1
-rows <- 10
-cols <- 10
+n <- 10
+m <- 10
 
 # Replace defaults with arguments if they exist
-for(i in 1:length(args)){
-  eval(parse(text=args[[i]]))
+nargs = length(args)
+if (nargs >= 1) {
+  seed <- eval( parse(text=args[1]))
+  if (nargs >= 2) {
+    n <- eval( parse(text=args[2]))
+    if (nargs >= 3) {
+      m <- eval( parse(text=args[3]))
+    }
+  }
 }
-
 set.seed(seed)
-print(c(seed, rows, cols))
-print(matrix(rexp(200, rate=.1),rows,cols))
+
+
+print(c(seed, n, m))
+print(matrix(rexp(200, rate=.1),nrow=n,ncol=m))
