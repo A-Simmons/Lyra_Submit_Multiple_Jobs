@@ -59,7 +59,6 @@ while read -a line; do
 		fi
 		ParamString=$ParamString" Jobname=$Jobname"
 		# Submit job to LYRA
-		echo $ParamString
 		qsub "$ParamString" -N $Jobname -l walltime=$Walltime -l mem=$Memory subJob.pbs
 	done
 	IFS=','
