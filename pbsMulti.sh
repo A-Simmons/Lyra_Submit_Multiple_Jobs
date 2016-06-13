@@ -44,22 +44,22 @@ while read -a line; do
 			echo "${header_array[i]}: ${line[i]}"
 		fi
 	done
-	ParamString="-v $ParamStringBase"
 
 	# Submit job for loop if repeat > 1
 	IFS=$OLDIFS
 	for i in $(seq 1 1 $repeat); do
-		# Add random seed the user can use 
+		# Add random seed the user can use
 		RNG_Seed=$RANDOM
-		ParamString="-v $ParamStringBase""RNG_Seed=$RNG_Seed"
+		ParamString="-v $ParamStringBase"" RNG_Seed=$RNG_Seed"
 
 		# Adjust jobname that is sent as a parameter to R script if Job is being repeated
 		Jobname=$Jobname_base
 		if [ "$repeat" -ge "1" ]; then
 			Jobname="$Jobname""_$i"
 		fi
-		ParamString=$ParamStringBase" Jobname=$Jobname"
+		ParamString=$ParamString" Jobname=$Jobname"
 		# Submit job to LYRA
+		echo $ParamString
 		qsub "$ParamString" -N $Jobname -l walltime=$Walltime -l mem=$Memory subJob.pbs
 	done
 	IFS=','
