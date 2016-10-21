@@ -9,7 +9,7 @@ subfile="rsubjob.sub"
 
 while getopts hvs: opt; do
     case "$opt" in
-        h) # helpv
+        h) # help
             echo >&2 "$usage_str"
             exit 0
             ;;
@@ -36,9 +36,8 @@ else
 fi
 
 # Check files exist
-echo $subfile
 [ ! -f $subfile ] && { echo "PBS submission script file $subfile could not be found"; exit 1; }
-[ ! -f $rscript ] && { echo "R script file $rscript could not be found"; exit 1; }
+[ ! -f $rscript".m" ] && { echo "R script file $rscript could not be found"; exit 1; }
 [ ! -f $csvfile ] && { echo "CSV parameter file $csvfile could not be found"; exit 1; }
 
 # if file is DOS format then convert to UNIX format
@@ -47,38 +46,16 @@ if [ -n "$isdos" ]; then
     dos2unix -q $csvfile
 fi
 
-# Pull header from CSV file and create a string array
-IFS=, read -r -a header_array <<< "$(head -n 1 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)')"
+# read the PBS specifics for the jobs, skipping empty or comment lines
+jobnames=( $(cat "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -f1) )
+jobwalltimes=( $(cat "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -f2) )
+jobcpus=( $(cat "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -f3) )
+jobmems=( $(cat "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -f4) )
 
-jobnamecol=f1; jobwalltimecol=f2; jobcpuscol=f3; jobmemcol=f4; jobrparamscols=(); jobrepeat=();
-for i in "${!header_array[@]}"; do
-  if [ "${header_array[i]}" == "jobname" ]; then
-    jobnames=( $(tail -n +2 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -"f$(($i+1))") )
-  elif [ "${header_array[i]}" == "walltime" ]; then
-    jobwalltimes=( $(tail -n +2 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -"f$(($i+1))") )
-  elif  [ "${header_array[i]}" == "ncpus" ]; then
-    jobcpus=( $(tail -n +2 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -"f$(($i+1))") )
-  elif  [ "${header_array[i]}" == "memory" ]; then
-    jobmems=( $(tail -n +2 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -"f$(($i+1))") )
-  elif  [ "${header_array[i]}" == "repeat" ]; then
-    jobrepeat=( $(tail -n +2 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -"f$(($i+1))") )
-  else
-     jobrparamscols+="$(($i+1)),"
-  fi
-done
+# read the R parameters for the jobs
+# note that strip commas later otherwise each parameter ends up in its own array element
+jobrparams=( $(cat "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -f5-) )
 
-# Add repeat variable if not found in CSV file
-if [ ${#jobrepeat[@]} -eq 0 ]; then
-  for i in $(seq 1 1 ${#jobnames[@]}); do jobrepeat+=(1); done;
-fi
-
-# Remove last comma from jobparams and read the PBS specifics for the jobs, skipping empty or comment lines
-jobrparamscols=${jobrparamscols:0:${#jobrparamscols}-1}
-jobrparams=( $(tail -n +2 "$csvfile" | egrep -v '(^#|^\s*$|^\s*\t*#)' | cut -d ',' -f$jobrparamscols) )
-# Seperate csv string into array for later use
-IFS=, read -r -a jobrparamscols <<< "$jobrparamscols"
-
-# Print to user jobs being sent to HPC
 numjobs=${#jobnames[@]}
 if [ $verbose -eq 1 ]; then
     echo -n "submitting $numjobs jobs to the cluster: "
@@ -94,29 +71,23 @@ for (( i = 0;  i < $numjobs; i++ )); do
     walltime=$(echo ${jobwalltimes[$i]} | xargs)
     ncpus=$(echo ${jobcpus[$i]} | xargs)
     mem=$(echo ${jobmems[$i]} | xargs)
-    repeat=$(echo ${jobrepeat[$i]} | xargs)
 
     # R params need csv delim replaced with a space
-    rargs_base=""; IFS=, read -r -a rparams <<< "${jobrparams[$i]}"
-
-    for (( j = 0;  j < ${#rparams[@]}; j++ )); do
-      [ ! -z ${rparams[$j]} ] && { index=$((${jobrparamscols[$j]}-1)); rargs_base=$rargs_base"${header_array[$index]}=${rparams[$j]} "; }
-    done
-
-    for (( j = 0;  j < $repeat; j++ )); do
-      name_r=$name"_$j"
-      rargs_job="$rargs_base RNG_Seed=$RANDOM UI=$name_r"
-      # then strip trailing spaces
-      rargs_job=$(echo $rargs_job | xargs)
-      # create R script submission string
-      scriptstr="scriptFile=$rscript,argString=--args"
-      [ -n "$rargs_job" ] && scriptstr="$scriptstr $rargs_job"
-      if [ $verbose -eq 1 ]; then
-          echo -n "submitting job $((i+1)) with: "
-          echo qsub -v \"MC_CORES=$ncpus, $scriptstr\" -N $name_r -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
-      fi
-      qsub -v "MC_CORES=$ncpus, $scriptstr" -N $name_r -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
-    done
+    rargs="${jobrparams[$i]//,/ }"
+    # then strip trailing spaces
+    rargs=$(echo $rargs | xargs)    
+    rargs=${rargs// /,}
+    # create R script submission string
+    scriptstr="scriptFile=$rscript,argString="
+    [ -n "$rargs" ] && scriptstr="$scriptstr$rargs"
+    if [ $verbose -eq 1 ]; then
+        echo -n "submitting job $((i+1)) with: "
+        echo qsub -v \"MC_CORES=$ncpus, $scriptstr\" -N $name -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
+    fi
+    echo executing: qsub -v "MC_CORES=$ncpus, $scriptstr" -N $name -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
+    qsub -v "MC_CORES=$ncpus, $scriptstr" -N $name -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
+    echo executing: matlab -nodisplay -nosplash -r "$rscript($rargs)"
+    matlab -nodisplay -nosplash -r "$rscript($rargs)"
 done
 
 # display jobs

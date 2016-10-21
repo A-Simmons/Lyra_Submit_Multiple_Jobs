@@ -1,0 +1,9 @@
+# jobname, walltime, ncpus, memory, R script arguments
+rmulti01,0:05:00,1,1gb,0.5,,,,,,
+rmulti02,0:05:00,2,2gb,1.2,9,3,,,,
+rmulti1,0:01:00,1,1gb,1,2,'\"We\"',4,,,
+#rmulti2,0:02:00,1,2gb,3,4,'\"Come\"',4,5,,
+#rmulti3,0:03:00,1,3gb,5,6,'\"In\"',10,11,6,
+#rmulti4,0:04:00,1,4gb,7,8,'\"Peace\"',1,2,3,7
+#rmulti5,0:05:00,2,5gb,1.2,9,3,,,,
+#rmulti6,0:06:00,2,6gb,,,,,,,
