@@ -1,0 +1,16 @@
+#!/bin/bash -l
+
+# NOTE this PBS submission script is called from pbsmultiR.sh
+# with PBS options, R script and arguments supplied
+# via qsub -v "variable=value, .."
+
+#### load R module
+module load matlab
+
+#### cd to working directory
+cd $PBS_O_WORKDIR
+
+# keep record in PBS output file of what this job ran
+echo executing: matlab -nodisplay -nosplash -r "${scriptFile//.m}($argString)" $PBS_JOBNAME.out
+
+matlab -nodisplay -nosplash -r "${scriptFile//.m}($argString)" $PBS_JOBNAME.out
