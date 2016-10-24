@@ -1,11 +1,11 @@
 #!/bin/bash
 
-usage_str="Usage: $(basename $0) [-h] [-v] [-s submission_script.sub] rscript.R parameter_file.csv"
+usage_str="Usage: $(basename $0) [-h] [-v] [-s submission_script.sub] matlabscipt.m parameter_file.csv"
 
 verbose=0
 
 # default PBS submission script
-subfile="rsubjob.sub"
+subfile="matlabsubjob.sub"
 
 while getopts hvs: opt; do
     case "$opt" in
@@ -31,13 +31,13 @@ if [ $# -ne 2 ]; then
     echo >&2 "$usage_str"
     exit 1
 else
-    rscript=$1
+    matlabscript=$1
     csvfile=$2
 fi
 
 # Check files exist
 [ ! -f $subfile ] && { echo "PBS submission script file $subfile could not be found"; exit 1; }
-[ ! -f $rscript".m" ] && { echo "R script file $rscript could not be found"; exit 1; }
+[ ! -f $matlabscript ] && { echo "MATLAB script file $matlabscript could not be found"; exit 1; }
 [ ! -f $csvfile ] && { echo "CSV parameter file $csvfile could not be found"; exit 1; }
 
 # if file is DOS format then convert to UNIX format
@@ -73,21 +73,26 @@ for (( i = 0;  i < $numjobs; i++ )); do
     mem=$(echo ${jobmems[$i]} | xargs)
 
     # R params need csv delim replaced with a space
-    rargs="${jobrparams[$i]//,/ }"
-    # then strip trailing spaces
-    rargs=$(echo $rargs | xargs)    
-    rargs=${rargs// /,}
-    # create R script submission string
-    scriptstr="scriptFile=$rscript,argString="
-    [ -n "$rargs" ] && scriptstr="$scriptstr$rargs"
-    if [ $verbose -eq 1 ]; then
-        echo -n "submitting job $((i+1)) with: "
-        echo qsub -v \"MC_CORES=$ncpus, $scriptstr\" -N $name -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
-    fi
-    echo executing: qsub -v "MC_CORES=$ncpus, $scriptstr" -N $name -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
-    qsub -v "MC_CORES=$ncpus, $scriptstr" -N $name -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
-    echo executing: matlab -nodisplay -nosplash -r "$rscript($rargs)"
-    matlab -nodisplay -nosplash -r "$rscript($rargs)"
+    rargs_base=""; IFS=, read -r -a rparams <<< "${jobrparams[$i]}"
+
+    for (( j = 0;  j < ${#rparams[@]}; j++ )); do
+      [ ! -z ${rparams[$j]} ] && { index=$((${jobrparamscols[$j]}-1)); rargs_base=$rargs_base"${rparams[$j]},"; }
+    done
+
+    for (( j = 0;  j < $repeat; j++ )); do
+      name_r=$name"_$j"
+      rargs_job="$rargs_base,$RANDOM,$name_r"
+      # then strip trailing spaces
+      rargs_job=$(echo $rargs_job | xargs)
+      # create R script submission string
+      scriptstr="scriptFile=$matlabscript,argString="
+      [ -n "$rargs_job" ] && scriptstr="$scriptstr$rargs_job"
+      if [ $verbose -eq 1 ]; then
+          echo -n "submitting job $((i+1)) with: "
+          echo qsub -v \"MC_CORES=$ncpus, $scriptstr\" -N $name_r -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
+      fi
+      qsub -v "MC_CORES=$ncpus, $scriptstr" -N $name_r -l walltime=$walltime -l select=1:ncpus=$ncpus:mem=$mem $subfile
+    done
 done
 
 # display jobs
