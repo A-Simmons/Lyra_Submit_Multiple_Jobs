@@ -41,9 +41,14 @@ fi
 [ ! -f $csvfile ] && { echo "CSV parameter file $csvfile could not be found"; exit 1; }
 
 # if file is DOS format then convert to UNIX format
-isdos=$(file "$csvfile" | grep CRLF)
-if [ -n "$isdos" ]; then
+isdosCSV=$(file "$csvfile" | grep CRLF)
+if [ -n "$isdosCSV" ]; then
     dos2unix -q $csvfile
+fi
+
+isdosSUB=$(file "$subfile" | grep CRLF)
+if [ -n "$isdosSUB" ]; then
+    dos2unix -q $subfile
 fi
 
 # read the PBS specifics for the jobs, skipping empty or comment lines
